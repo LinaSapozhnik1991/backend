@@ -1,29 +1,35 @@
-# ---- Этап 1: сборка ----
-    FROM node:20-alpine AS builder
-    WORKDIR /usr/src/app
-    
-    # Копируем файлы, которые нужны для установки зависимостей и сборки.
-    COPY package*.json ./
-    COPY prisma ./prisma
-    
-    # Устанавливаем все зависимости, генерируем клиент Prisma и собираем приложение.
-    RUN npm ci
-    RUN npx prisma generate
-    COPY . .
-    RUN npm run build
-    
-    # ---- Этап 2: продакшн ----
-    FROM node:20-alpine
-    WORKDIR /usr/src/app
-    
-    # Копируем собранные артефакты из предыдущего этапа.
-    COPY --from=builder /usr/src/app/dist ./dist
-    COPY --from=builder /usr/src/app/node_modules ./node_modules
-    COPY --from=builder /usr/src/app/package*.json ./
-    # Обязательно копируем папку prisma, чтобы клиент был доступен в runtime.
-    COPY --from=builder /usr/src/app/prisma ./prisma
-    
-    ENV PORT=3000
-    EXPOSE 3000
-    
-    CMD ["node", "dist/main.js"]
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Копируем package.json и prisma схему
+COPY package*.json prisma/ ./
+
+# Очищаем возможные старые бинарники и устанавливаем зависимости
+RUN npm cache clean --force && \
+    rm -rf node_modules && \
+    npm ci && \
+    npx prisma generate
+
+# Копируем остальной код
+COPY . .
+
+# Собираем приложение
+RUN npm run build
+
+FROM node:20-alpine
+WORKDIR /app
+
+# Копируем собранное приложение и зависимости из builder
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/prisma ./prisma
+
+# Создаём непривилегированного пользователя
+RUN chown -R node:node /app
+USER node
+
+ENV PORT=3000
+EXPOSE 3000
+
+CMD ["node", "dist/main.js"]
