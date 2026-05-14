@@ -44,7 +44,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UsersService = void 0;
 const common_1 = require("@nestjs/common");
-const bcrypt = __importStar(require("bcrypt"));
+const bcrypt = __importStar(require("bcryptjs"));
 const jwt_util_1 = require("../auth/jwt.util");
 const roles_util_1 = require("../auth/roles.util");
 const counter_service_1 = require("../database/counter.service");

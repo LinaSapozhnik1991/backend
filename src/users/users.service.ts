@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
   UnprocessableEntityException
 } from "@nestjs/common";
-import * as bcrypt from "bcrypt";
+import * as bcrypt from "bcryptjs";
 import { signAccessToken } from "../auth/jwt.util";
 import type { JwtUser } from "../auth/jwt.util";
 import { inferUserRole } from "../auth/roles.util";

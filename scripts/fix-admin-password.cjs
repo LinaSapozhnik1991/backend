@@ -1,5 +1,5 @@
 /**
- * Сбрасывает пароль admin на admin123 (bcrypt Node) или создаёт пользователя admin, если его нет.
+ * Сбрасывает пароль admin на admin123 (bcrypt) или создаёт пользователя admin, если его нет.
  * Читает DATABASE_URL из backend/.env. Запуск: npm run db:fix-admin-password
  */
 const fs = require("fs");

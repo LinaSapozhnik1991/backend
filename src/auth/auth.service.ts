@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException, UnprocessableEntityException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import * as bcrypt from "bcrypt";
+import * as bcrypt from "bcryptjs";
 import { inferUserRole } from "./roles.util";
 import { signAccessToken } from "./jwt.util";
 import { PrismaService } from "../database/prisma.service";
