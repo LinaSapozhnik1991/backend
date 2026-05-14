@@ -8,7 +8,7 @@
     
     # Устанавливаем все зависимости, генерируем клиент Prisma и собираем приложение.
     RUN npm ci
-    RUN npx prisma generate
+    RUN node ./node_modules/prisma/build/index.js generate
     COPY . .
     RUN npm run build
     
