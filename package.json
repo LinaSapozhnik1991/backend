@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "postinstall": "prisma generate",
-    "build": "prisma generate && nest build",
+    "postinstall": "npx prisma generate",
+    "build": "npx prisma generate && npx nest build",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
-    "db:migrate": "prisma migrate deploy",
-    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate": "npx prisma migrate deploy",
+    "db:migrate:dev": "npx prisma migrate dev",
     "db:fix-admin-password": "node scripts/fix-admin-password.cjs",
     "db:migrate-mysql-to-mongo": "node scripts/migrate-mysql-to-mongo.cjs"
   },
@@ -30,6 +30,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^3.11.5",
+    "prisma": "^6.19.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
@@ -45,7 +46,6 @@
     "@types/multer": "^1.4.12",
     "@types/node": "^20.17.10",
     "mongoose": "^9.6.2",
-    "prisma": "^6.19.0",
     "typescript": "^5.7.2"
   }
 }
