@@ -2,36 +2,28 @@
     FROM node:20-alpine AS builder
     WORKDIR /usr/src/app
     
-    # Копируем prisma отдельно, чтобы была доступна схема для генерации клиента
-    COPY prisma ./prisma
+    # Копируем файлы, которые нужны для установки зависимостей и сборки.
     COPY package*.json ./
-    COPY tsconfig*.json ./
+    COPY prisma ./prisma
     
-    # Устанавливаем зависимости (включая dev, т.к. нужны при сборке)
+    # Устанавливаем все зависимости, генерируем клиент Prisma и собираем приложение.
     RUN npm ci
-    
-    # Генерируем Prisma Client ПЕРЕД сборкой
     RUN npx prisma generate
-    
-    # Копируем исходный код
     COPY . .
-    
-    # Собираем приложение
     RUN npm run build
     
     # ---- Этап 2: продакшн ----
     FROM node:20-alpine
     WORKDIR /usr/src/app
     
-    # Копируем собранный код и нужные зависимости из этапа builder
+    # Копируем собранные артефакты из предыдущего этапа.
     COPY --from=builder /usr/src/app/dist ./dist
     COPY --from=builder /usr/src/app/node_modules ./node_modules
     COPY --from=builder /usr/src/app/package*.json ./
+    # Обязательно копируем папку prisma, чтобы клиент был доступен в runtime.
     COPY --from=builder /usr/src/app/prisma ./prisma
     
-    # Делаем приложение доступным на порту, который ожидает Render
     ENV PORT=3000
     EXPOSE 3000
     
-    # Запускаем приложение
     CMD ["node", "dist/main.js"]
