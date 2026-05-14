@@ -1,35 +1,41 @@
-FROM node:20-alpine AS builder
-WORKDIR /app
-
-# Копируем package.json и prisma схему
-COPY package*.json prisma/ ./
-
-# Очищаем возможные старые бинарники и устанавливаем зависимости
-RUN npm cache clean --force && \
-    rm -rf node_modules && \
-    npm ci && \
-    npx prisma generate
-
-# Копируем остальной код
-COPY . .
-
-# Собираем приложение
-RUN npm run build
-
-FROM node:20-alpine
-WORKDIR /app
-
-# Копируем собранное приложение и зависимости из builder
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma
-
-# Создаём непривилегированного пользователя
-RUN chown -R node:node /app
-USER node
-
-ENV PORT=3000
-EXPOSE 3000
-
-CMD ["node", "dist/main.js"]
+# ---- Этап сборки ----
+    FROM node:20-alpine AS builder
+    WORKDIR /app
+    
+    # Устанавливаем компилятор для bcrypt
+    RUN apk add --no-cache python3 make g++
+    
+    COPY package*.json ./
+    COPY prisma ./prisma
+    
+    # Устанавливаем зависимости
+    RUN npm ci
+    
+    # Генерируем Prisma Client
+    RUN npx prisma generate
+    
+    # Принудительно пересобираем bcrypt (если нужно)
+    RUN npm rebuild bcrypt --build-from-source
+    
+    # Копируем остальной код и собираем TypeScript
+    COPY . .
+    RUN npm run build
+    
+    # ---- Финальный этап (только runtime) ----
+    FROM node:20-alpine
+    WORKDIR /app
+    
+    # Копируем только собранные файлы и зависимости из builder
+    COPY --from=builder /app/dist ./dist
+    COPY --from=builder /app/node_modules ./node_modules
+    COPY --from=builder /app/package*.json ./
+    COPY --from=builder /app/prisma ./prisma
+    
+    # Запуск от непривилегированного пользователя (безопасность)
+    RUN chown -R node:node /app
+    USER node
+    
+    ENV PORT=3000
+    EXPOSE 3000
+    
+    CMD ["node", "dist/main.js"]
