@@ -1,0 +1,31 @@
+import { HttpService } from "@nestjs/axios";
+import { ConfigService } from "@nestjs/config";
+import { PrismaService } from "../database/prisma.service";
+import type { SyncResultDto } from "./dto/sync-result.dto";
+import type { KeitaroOffer } from "./interfaces/keitaro-offer.interface";
+export declare class KeitaroService {
+    private readonly http;
+    private readonly cfg;
+    private readonly prisma;
+    private readonly log;
+    constructor(http: HttpService, cfg: ConfigService, prisma: PrismaService);
+    fetchOffers(warnings?: string[]): Promise<KeitaroOffer[]>;
+    fetchOfferById(keitaroOfferId: number, warnings?: string[]): Promise<KeitaroOffer | null>;
+    syncLandings(): Promise<SyncResultDto>;
+    private executeKeitaroLandingsSync;
+    private executeKeitaroOffersSync;
+    private fetchKeitaroOfferGroupNames;
+    private buildOfferGroupsUrl;
+    private fetchKeitaroLandingGroupNames;
+    private buildLandingsGroupsUrl;
+    private resolveCrmGroupName;
+    private resolveCrmOfferGroupName;
+    private extractOffersListPayload;
+    private buildOfferByIdUrl;
+    private buildPagedUrl;
+    private buildAuthHeaders;
+    private upsertOneLanding;
+    private upsertOneOffer;
+    private parseDate;
+    private mapStateToCrmStatus;
+}
