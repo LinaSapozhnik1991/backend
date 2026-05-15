@@ -20,11 +20,12 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
 
-RUN chown -R node:node /app
+RUN chmod +x docker-entrypoint.sh && chown -R node:node /app
 USER node
 
 ENV PORT=3000
 EXPOSE 3000
 
-CMD ["/bin/sh", "-c", "node ./node_modules/prisma/build/index.js migrate deploy && node dist/main.js"]
+CMD ["./docker-entrypoint.sh"]
