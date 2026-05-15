@@ -16,6 +16,14 @@ const config_1 = require("@nestjs/config");
 const schedule_1 = require("@nestjs/schedule");
 const cron_1 = require("cron");
 const keitaro_service_1 = require("./keitaro.service");
+function isSyncCronDisabled(raw) {
+    const v = (raw ?? "").trim().toLowerCase();
+    return v === "off" || v === "false" || v === "0" || v === "disabled" || v === "none";
+}
+function isEnvFlagFalse(raw) {
+    const v = (raw ?? "").trim().toLowerCase();
+    return v === "false" || v === "0" || v === "off" || v === "no";
+}
 let KeitaroCronService = KeitaroCronService_1 = class KeitaroCronService {
     constructor(scheduler, cfg, keitaro) {
         this.scheduler = scheduler;
@@ -25,17 +33,27 @@ let KeitaroCronService = KeitaroCronService_1 = class KeitaroCronService {
     }
     onModuleInit() {
         const raw = this.cfg.get("SYNC_CRON", "*/15 * * * *")?.trim();
-        const expr = raw && raw.length > 0 ? raw : "*/15 * * * *";
-        try {
-            const job = new cron_1.CronJob(expr, () => {
-                void this.runSafe();
-            });
-            this.scheduler.addCronJob("keitaro-sync", job);
-            job.start();
-            this.log.log(`Keitaro: cron зарегистрирован (${expr})`);
+        if (isSyncCronDisabled(raw)) {
+            this.log.log("Keitaro: периодический cron отключён (SYNC_CRON=off)");
         }
-        catch (e) {
-            this.log.error(`Keitaro: некорректный SYNC_CRON="${expr}"`, e);
+        else {
+            const expr = raw && raw.length > 0 ? raw : "*/15 * * * *";
+            try {
+                const job = new cron_1.CronJob(expr, () => {
+                    void this.runSafe();
+                });
+                this.scheduler.addCronJob("keitaro-sync", job);
+                job.start();
+                this.log.log(`Keitaro: cron зарегистрирован (${expr})`);
+            }
+            catch (e) {
+                this.log.error(`Keitaro: некорректный SYNC_CRON="${expr}"`, e);
+            }
+        }
+        const syncOnStart = this.cfg.get("KEITARO_SYNC_ON_START", "true");
+        if (isEnvFlagFalse(syncOnStart)) {
+            this.log.log("Keitaro: синхронизация при старте отключена (KEITARO_SYNC_ON_START=false)");
+            return;
         }
         void this.runSafe();
     }
