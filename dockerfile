@@ -27,4 +27,4 @@ USER node
 ENV PORT=3000
 EXPOSE 3000
 
-CMD ["node", "dist/main.js"]
+CMD ["/bin/sh", "-c", "node ./node_modules/prisma/build/index.js migrate deploy && node dist/main.js"]
